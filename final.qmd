@@ -1,0 +1,65 @@
+---
+title: "Final Project CHANGE TITLE"
+author: "Matthew Rui and Rohit Suresh"
+format: pdf
+---
+
+## Load Data
+```{r exercise-0, message = F, warning = F}
+library(tidyverse)
+library(tidymodels)
+
+barttorvik_away <- read_csv("data/Barttorvik Away.csv")
+barttorvik_home <- read_csv("data/Barttorvik Home.csv")
+
+# Remove % from column names
+colnames(barttorvik_away) <- gsub("%", "", colnames(barttorvik_away))
+names(barttorvik_away) <- gsub("^([0-9])", "X\\1", names(barttorvik_away))
+barttorvik_away$ROUND <- as.character(barttorvik_away$ROUND)
+barttorvik_away$ROUND <- factor(barttorvik_away$ROUND, levels = c("1", "2", "4", "8", "16", "32", "64", "68", "0"))
+
+
+```
+
+## Introduction and Data
+```{r intro, message = F, warning = F}
+# Create a data frame
+data <- data.frame(Response = barttorvik_away$ROUND, Predictor = barttorvik_away$X2PTD)
+
+# Plotting stacked box plots
+ggplot(data, aes(x = Response, y = Predictor, fill = Response)) +
+  geom_boxplot() +
+  labs(title = "Stacked Box Plots of Predictor vs Response",
+       x = "Response", y = "Predictor") +
+  theme_minimal()
+
+library(ggplot2)
+# Create heatmap
+summary_data <- barttorvik_away %>%
+  group_by(ROUND, `X2PT`, `X2PTD`) %>%
+  summarise(mean_round = mean(as.numeric(ROUND)))
+
+# Create heatmap
+ggplot(summary_data, aes(x = `X2PT`, y = `X2PTD`, fill = mean_round)) +
+  geom_tile(width = 0.4, height = 0.4) +  # Adjust width and height as needed
+  scale_fill_gradient(low = "darkblue", high = "red", name = "Mean Round") +  # Adjust colors
+  labs(x = "2pt", y = "2ptd", title = "Heatmap of Mean Round vs 2pt and 2ptd") +
+  theme_minimal()
+```
+
+
+## Model
+```{r model-1, message = F, warning = F}
+library(nnet)
+m1 <- multinom(ROUND ~ X2PT + X2PTD, data = barttorvik_away)
+
+confint(m1)
+exp(coef(m1))
+```
+
+## Model
+```{r model-2, message = F, warning = F}
+m2 <- lm(WIN ~ X2PT + X3PT + X2PTD + X3PTD + TOV + OREB + TOVD + DREB + PPPO, data = barttorvik_away)
+
+summary(m2)
+```
