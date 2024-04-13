@@ -92,8 +92,16 @@ optimal_threshold <- coords(roc_obj, "best", ret = "threshold")[[1]]
 
 # Print the optimal threshold
 print(paste("Optimal threshold:", optimal_threshold))
-```
 
+# Classify based on the optimal threshold
+df$predicted_class <- ifelse(predicted_prob >= optimal_threshold, 'yes', 'no')
+table(df$predicted_class, df$final_four)
+
+```
+Sensitivtiy = 43/60 = 71.7%
+specif = 859/1019 = 84.3%
+ppv = 43/177 = 24.3%
+npv = 859/876 = 98.1%
 ## Model
 ```{r model-5, message = F, warning = F}
 # Assuming your data is in a data frame called 'df'
@@ -179,5 +187,9 @@ optimal_threshold <- coords(roc_obj, "best", ret = "threshold")[[1]]
 # Print the optimal threshold
 print(paste("Optimal threshold:", optimal_threshold))
 
+df$predicted_class <- ifelse(predicted_prob >= optimal_threshold, 'yes', 'no')
+table(df$predicted_class, df$final_four)
+
 
 ```
+same as above
