@@ -63,3 +63,121 @@ m2 <- lm(WIN ~ X2PT + X3PT + X2PTD + X3PTD + TOV + OREB + TOVD + DREB + PPPO, da
 
 summary(m2)
 ```
+
+## Model
+```{r model-4, message = F, warning = F}
+library(glmnet)
+
+df <- subset(barttorvik_away, select = c(ROUND, BARTHAG, GAMES, WIN, EFG, EFGD, FTR, FTRD, TOV, TOVD, OREB, DREB, `RAW T`, EXP, `ELITE SOS`, FT, `OP FT`))
+df <- df %>%
+  mutate(final_four = case_when(
+    ROUND == 1 ~ 1,
+    ROUND == 2 ~ 1,
+    ROUND == 4 ~ 1,
+    TRUE ~ 0
+  ))
+df$final_four <- as.factor(df$final_four)
+df <- subset(df, select = -c(ROUND))
+
+
+m3 = glm(final_four ~ ., family = "binomial", data=df)
+summary(m3)
+
+predicted_prob <- predict(m3, type = "response")
+
+# Find the optimal threshold using ROC curve
+library(pROC)
+roc_obj <- roc(selected_df$final_four, predicted_prob)
+optimal_threshold <- coords(roc_obj, "best", ret = "threshold")[[1]]
+
+# Print the optimal threshold
+print(paste("Optimal threshold:", optimal_threshold))
+```
+
+## Model
+```{r model-5, message = F, warning = F}
+# Assuming your data is in a data frame called 'df'
+# and the target variable is named 'target'
+
+# Load the necessary libraries
+library(caret)
+library(randomForest)
+
+# Set the number of folds for cross-validation
+k_folds <- 50
+
+# Set the number of top features to select
+k_features <- 5
+
+# Perform cross-validation with random forest
+set.seed(123)  # For reproducibility
+rf_cv <- train(
+  x = df[, !colnames(df) %in% "final_four"],
+  y = df$final_four,
+  method = "rf",
+  trControl = trainControl(
+    method = "cv",
+    number = k_folds,
+    verboseIter = TRUE  # Enable progress tracking
+  ),
+  importance = TRUE
+
+)
+
+# Get the variable importance scores
+var_importance <- varImp(rf_cv)
+
+# Select the top k features based on variable importance
+top_features <- rownames(var_importance$importance)[1:k_features]
+
+# Print the top k features
+print(top_features)
+```
+
+```{r model-5, message = F, warning = F}
+
+library(caret)
+
+# Set the number of top features to select
+k_features <- 10
+
+# Perform PCA
+pca_model <- prcomp(df[, !colnames(df) %in% "final_four"], scale. = TRUE)
+
+# Get the variable loadings (importance scores)
+var_loadings <- abs(pca_model$rotation)
+
+# Create a data frame with variable loadings and original feature names
+var_loadings_df <- data.frame(var_loadings, Feature = colnames(df)[!colnames(df) %in% "final_four"])
+
+# Melt the data frame to create a long format
+var_loadings_melt <- reshape2::melt(var_loadings_df, id.vars = "Feature")
+
+# Select the top k features based on variable loadings
+top_features <- var_loadings_melt %>%
+  group_by(Feature) %>%
+  summarise(MaxLoading = max(value)) %>%
+  top_n(k_features, MaxLoading) %>%
+  pull(Feature)
+
+# Print the top k features
+print(top_features)
+
+# Create a new data frame with selected features and the target variable
+selected_df <- df[, c(top_features, "final_four")]
+
+m6 = glm(final_four ~ BARTHAG + DREB + EXP + FT + GAMES + `OP FT` + `RAW T` +  TOV + TOVD, family = "binomial", data=selected_df)
+summary(m6)
+
+predicted_prob <- predict(m6, type = "response")
+
+# Find the optimal threshold using ROC curve
+library(pROC)
+roc_obj <- roc(selected_df$final_four, predicted_prob)
+optimal_threshold <- coords(roc_obj, "best", ret = "threshold")[[1]]
+
+# Print the optimal threshold
+print(paste("Optimal threshold:", optimal_threshold))
+
+
+```
