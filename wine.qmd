@@ -1,0 +1,14 @@
+---
+title: "Final Project"
+author: "Matthew Rui and Rohit Suresh"
+format: pdf
+---
+
+## Load Data
+```{r exercise-0, message = F, warning = F}
+library(tidyverse)
+library(tidymodels)
+
+df <- read.csv("winequality-red.csv", sep=";")
+
+```
