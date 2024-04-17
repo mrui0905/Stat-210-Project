@@ -5,10 +5,165 @@ format: pdf
 ---
 
 ## Load Data
-```{r exercise-0, message = F, warning = F}
+```{r Load Data, message = F, warning = F}
 library(tidyverse)
 library(tidymodels)
+library(ggplot2)
 
-df <- read.csv("winequality-red.csv", sep=";")
+red <- read.csv("winequality-red.csv", sep=";")
+red$color <- "red"
+white <- read.csv("winequality-white.csv", sep=";")
+white$color <- "white"
+
+df <- rbind(red, white)
+df <- na.omit(df)
+df$quality <- as.factor(df$quality)
 
 ```
+
+## Linear Regression
+```{r Linear Regression, message = F, warning = F}
+
+# Can we predict alcohol levels?
+
+# Simple Linear Regression
+simple_linear_regression <- lm(alcohol ~ ., data=df)
+summary(simple_linear_regression)
+
+# Residual Plot + Q-Q + Histogram
+
+simple_linear_regression_aug <- augment(simple_linear_regression)
+ggplot(simple_linear_regression_aug, aes(x = .fitted, y = .resid)) + 
+  geom_point() + 
+  geom_hline(yintercept = 0, color = "darkred") + 
+  labs(x = "Fitted alcohol value", y = "Residual") + 
+  theme_bw()
+
+ggplot(simple_linear_regression_aug, aes(sample = .resid)) +
+  stat_qq() + 
+  stat_qq_line() + 
+  theme_bw() + 
+  labs(x = "Theoretical quantiles", 
+       y = "Sample quantiles")
+
+ggplot(simple_linear_regression_aug, aes(x = .resid)) + 
+  geom_histogram(aes(y = ..density..), 
+                     fill = "deepskyblue", color = "darkblue") + 
+  stat_function(fun = dnorm, 
+                args = list(mean = mean(simple_linear_regression_aug$.resid),
+                            sd = sd(simple_linear_regression_aug$.resid)),
+                color = "darkred", lwd = 2) +
+  labs(x = "Residual", y = "Density") + 
+  theme_bw()
+
+# We have 1 clear outlier - what happens if we remove it?
+residuals <- residuals(simple_linear_regression)
+outliers <- df[abs(residuals) > 10, ]
+
+df <- df[abs(residuals) <= 10, ]
+
+simple_linear_regression_pruned <- lm(alcohol ~ ., data=df)
+summary(simple_linear_regression_pruned)
+
+simple_linear_regression_pruned_aug <- augment(simple_linear_regression_pruned)
+ggplot(simple_linear_regression_pruned_aug, aes(x = .fitted, y = .resid)) + 
+  geom_point() + 
+  geom_hline(yintercept = 0, color = "darkred") + 
+  labs(x = "Fitted alcohol value", y = "Residual") + 
+  theme_bw()
+
+ggplot(simple_linear_regression_pruned_aug, aes(sample = .resid)) +
+  stat_qq() + 
+  stat_qq_line() + 
+  theme_bw() + 
+  labs(x = "Theoretical quantiles", 
+       y = "Sample quantiles")
+
+ggplot(simple_linear_regression_pruned_aug, aes(x = .resid)) + 
+  geom_histogram(aes(y = ..density..), 
+                     fill = "deepskyblue", color = "darkblue") + 
+  stat_function(fun = dnorm, 
+                args = list(mean = mean(simple_linear_regression_pruned_aug$.resid),
+                            sd = sd(simple_linear_regression_pruned_aug$.resid)),
+                color = "darkred", lwd = 2) +
+  labs(x = "Residual", y = "Density") + 
+  theme_bw()
+
+# Ok, now what if we add interaction terms for color of wine?
+linear_regression_interaction <- lm(alcohol ~ fixed.acidity + volatile.acidity + citric.acid + residual.sugar + chlorides + free.sulfur.dioxide + total.sulfur.dioxide + density + pH + sulphates + quality + color + color*fixed.acidity + color*volatile.acidity + color*citric.acid + color*residual.sugar + color*chlorides + color*free.sulfur.dioxide + color*total.sulfur.dioxide + color*density + color*pH + color*sulphates + color*quality, data=df)
+summary(linear_regression_interaction)
+
+# Note that p > n for quality = 9 and color = white, hence we're unable to obtain estimates.
+
+# Residual Plot + Q-Q + Histogram Again
+linear_regression_interaction_aug <- augment(linear_regression_interaction)
+ggplot(linear_regression_interaction_aug, aes(x = .fitted, y = .resid)) + 
+  geom_point() + 
+  geom_hline(yintercept = 0, color = "darkred") + 
+  labs(x = "Fitted alcohol value", y = "Residual") + 
+  theme_bw()
+
+ggplot(linear_regression_interaction_aug, aes(sample = .resid)) +
+  stat_qq() + 
+  stat_qq_line() + 
+  theme_bw() + 
+  labs(x = "Theoretical quantiles", 
+       y = "Sample quantiles")
+
+ggplot(linear_regression_interaction_aug, aes(x = .resid)) + 
+  geom_histogram(aes(y = ..density..), 
+                     fill = "deepskyblue", color = "darkblue") + 
+  stat_function(fun = dnorm, 
+                args = list(mean = mean(linear_regression_interaction_aug$.resid),
+                            sd = sd(linear_regression_interaction_aug$.resid)),
+                color = "darkred", lwd = 2) +
+  labs(x = "Residual", y = "Density") + 
+  theme_bw()
+```
+
+## Classification w/ Logistic
+```{r Logistic Regression, message = F, warning = F}
+
+# Continuing, let's try to predict whether a wine is high quality (>= 7, arbitrary cutoff).
+df$high_quality <- ifelse(df$quality %in% c("7", "8", "9"), 1, 0)
+
+logistic_model <- glm(high_quality ~ fixed.acidity + volatile.acidity + citric.acid + residual.sugar + chlorides + free.sulfur.dioxide + total.sulfur.dioxide + density + pH + sulphates + alcohol + color, data=df, family="binomial")
+summary(logistic_model)
+
+# Honestly pretty good, let's now try again with interaction terms
+
+logistic_model_interaction <- glm(high_quality ~ fixed.acidity + volatile.acidity + citric.acid + residual.sugar + chlorides + free.sulfur.dioxide + total.sulfur.dioxide + density + pH + sulphates + alcohol + color + color*fixed.acidity + color*volatile.acidity + color*citric.acid + color*residual.sugar + color*chlorides + color*free.sulfur.dioxide + color*total.sulfur.dioxide + color*density + color*pH + color*sulphates + color*alcohol, data=df, family="binomial")
+summary(logistic_model_interaction)
+
+# Surprisingly, some of the predictor which were significant for the model w/o interaction terms are no longer significant. Let's see which model is a better classifier then.
+
+library(pROC)
+
+prob_logistic <- predict(logistic_model, type = "response")
+roc_logistic <- roc(df$high_quality, prob_logistic)
+optimal_logistic <- coords(roc_logistic, "best", ret = "threshold")[[1]]
+print(paste("Optimal threshold:", optimal_logistic))
+df$predict_logistic <- ifelse(prob_logistic >= optimal_threshold, 'High Quality', 'Low Quality')
+table(df$predict_logistic, df$high_quality)
+
+prob_logistic_interaction <- predict(logistic_model_interaction, type = "response")
+roc_logistic_interaction <- roc(df$high_quality, prob_logistic_interaction)
+optimal_logistic_interaction <- coords(roc_logistic_interaction, "best", ret = "threshold")[[1]]
+print(paste("Optimal threshold:", optimal_logistic_interaction))
+df$predict_logistic_interaction <- ifelse(prob_logistic_interaction >= optimal_threshold, 'High Quality', 'Low Quality')
+table(df$predict_logistic_interaction, df$high_quality)
+
+```
+Logistic Model:
+- Sensitivity: 1183/(1183+94) = 0.9263899765
+- Specificity: 2050/(2050+3169) = 0.3927955547
+- Positive Predictive Value: 1183/(1183+3169) = 0.27182904411
+- Negative Predictive Value: 2050/(2050+94) = 0.95615671641
+
+Logistic Interaction Model:
+- Sensitivity: 1203/(1203+74) = 0.94205168363
+- Specificity: 2091/(2091+3128) = 0.40065146579
+- Positive Predictive Value: 1203/(1203+3128) = 0.27776495035
+- Negative Predictive Value: 2091/(2091+74) = 0.96581986143
+
+The interaction model is better in every metric!
