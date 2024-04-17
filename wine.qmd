@@ -9,6 +9,9 @@ format: pdf
 library(tidyverse)
 library(tidymodels)
 library(ggplot2)
+library(pROC)
+library(randomForest)
+library(caret)
 
 red <- read.csv("winequality-red.csv", sep=";")
 red$color <- "red"
@@ -137,8 +140,6 @@ summary(logistic_model_interaction)
 
 # Surprisingly, some of the predictor which were significant for the model w/o interaction terms are no longer significant. Let's see which model is a better classifier then.
 
-library(pROC)
-
 prob_logistic <- predict(logistic_model, type = "response")
 roc_logistic <- roc(df$high_quality, prob_logistic)
 optimal_logistic <- coords(roc_logistic, "best", ret = "threshold")[[1]]
@@ -167,3 +168,27 @@ Logistic Interaction Model:
 - Negative Predictive Value: 2091/(2091+74) = 0.96581986143
 
 The interaction model is better in every metric!
+
+## Random Forest
+
+```{r Random Forest, message=FALSE, warning=FALSE}
+
+include_cols <- c('fixed.acidity' , 'volatile.acidity' , 'citric.acid' , 'residual.sugar' , 'chlorides' , 'free.sulfur.dioxide' , 'total.sulfur.dioxide' , 'density' , 'pH' , 'sulphates' , 'alcohol' , 'color')
+X <- df[, (names(df) %in% include_cols)]  
+y <- df$high_quality
+k <- 10
+ctrl <- trainControl(method = "cv", number = k, verboseIter = TRUE)
+rf_model <- train(x = X, y = y, method = "rf", trControl = ctrl)
+
+print(rf_model)
+df$rf_predictions <- predict(rf_model, X)
+df$rf_classification <- ifelse(df$rf_predictions > 0.5, "High Quality", "Low Quality")
+
+table(df$rf_classification, df$high_quality)
+
+```
+Random Forest Model:
+- Sensitivity: 1262/(1262+15) = 0.98825371965
+- Specificity: 5219/(5219+0) = 1
+- Positive Predictive Value: 1262/(1262+0) = 1
+- Negative Predictive Value: 5219/(5219+15) = 0.99713412304
