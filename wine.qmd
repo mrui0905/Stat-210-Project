@@ -21,7 +21,59 @@ white$color <- "white"
 df <- rbind(red, white)
 df <- na.omit(df)
 df$quality <- as.factor(df$quality)
+```
 
+## Introduction and data
+
+Wine quality evaluations play an important role in numerous parts of the wine supply chain. They are important for quality assurance, market differentiation, and consumer guidance. Generally, a wine quality evaluation analyzes appearance, aroma, flavor, structure, and overall balance to generate a score from 1 to 10. Physicochemical properties of wine samples is readily available to most manufacturers, and quantifying the relationship between physiochemical properties and wine quality evaluations could be of great interest to manufacturers. It may help them with quality control, product development, and cost efficiency. [ADD CITATION]
+
+The data for this work is from the UC Irvine Machine Learning Repository from the paper Cortez et al., 2009. [ADD CITATION] Rows with missing data were removed and quality was treated as a factor. 
+
+Datasets for white wine and red wine were provided separately from the source. In this work, we combined the data into one dataset, creating a new variable for the color of wine (color) in the process. [DEFINE VARIABLES]
+
+
+```{r intro-0, message = F, warning = F}
+summary(df)
+```
+
+Red wines, on average, have lower quality scores than white wines on average. While this will result in a more complex model, it will more accurately picture the data in one model, which is why we chose to do this.
+
+```{r intro-1, message = F, warning = F}
+# Create a bar plot of quality
+barplot_quality <- ggplot(df, aes(x = factor(quality))) +
+  geom_bar(fill = "skyblue", color = "black", alpha = 0.7) +
+  labs(title = "Bar Plot of Wine Quality", x = "Quality", y = "Frequency") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+# Plot the bar plot
+print(barplot_quality)
+```
+
+To perform logistic regression, a quality threshold for high quality vs low quality was established after analyzing the distribution of quality scores. 
+
+
+
+Samples with quality scores of 7 or greater were classified as high quality. [ADD REASONING]
+
+``` {r intro-2, message = F, warning = F}
+# Continuing, let's try to predict whether a wine is high quality (>= 7).
+df$high_quality <- ifelse(df$quality %in% c("7", "8", "9"), 1, 0)
+
+df$high_quality <- factor(df$high_quality, levels = c(0, 1), labels = c("No", "Yes"))
+```
+
+Alcohol could be a good predictor of whether a wine is high quality.
+
+``` {r intro-3, message = F, warning = F}
+# Create a box plot of alcohol and high_quality
+boxplot_sulphates <- ggplot(df, aes(x = high_quality, y = alcohol, fill = high_quality)) +
+  geom_boxplot() +
+  labs(title = "Box Plot of Alcohol and High Quality", x = "High Quality", y = "Alcohol") +
+  scale_fill_manual(values = c("No" = "skyblue", "Yes" = "pink")) +  # Custom colors for the fill
+  theme_minimal()
+
+# Plot the box plot
+print(boxplot_sulphates)
 ```
 
 ## Linear Regression
@@ -144,6 +196,7 @@ prob_logistic <- predict(logistic_model, type = "response")
 roc_logistic <- roc(df$high_quality, prob_logistic)
 optimal_logistic <- coords(roc_logistic, "best", ret = "threshold")[[1]]
 print(paste("Optimal threshold:", optimal_logistic))
+optimal_threshold <- 0.5
 df$predict_logistic <- ifelse(prob_logistic >= optimal_threshold, 'High Quality', 'Low Quality')
 table(df$predict_logistic, df$high_quality)
 
@@ -178,13 +231,13 @@ X <- df[, (names(df) %in% include_cols)]
 y <- df$high_quality
 k <- 10
 ctrl <- trainControl(method = "cv", number = k, verboseIter = TRUE)
-rf_model <- train(x = X, y = y, method = "rf", trControl = ctrl)
+#rf_model <- train(x = X, y = y, method = "rf", trControl = ctrl)
 
-print(rf_model)
-df$rf_predictions <- predict(rf_model, X)
-df$rf_classification <- ifelse(df$rf_predictions > 0.5, "High Quality", "Low Quality")
+#print(rf_model)
+#df$rf_predictions <- predict(rf_model, X)
+#df$rf_classification <- ifelse(df$rf_predictions > 0.5, "High Quality", "Low Quality")
 
-table(df$rf_classification, df$high_quality)
+#table(df$rf_classification, df$high_quality)
 
 ```
 Random Forest Model:
