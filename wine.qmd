@@ -121,28 +121,55 @@ simple_linear_regression_pruned <- lm(alcohol ~ ., data=df)
 summary(simple_linear_regression_pruned)
 
 simple_linear_regression_pruned_aug <- augment(simple_linear_regression_pruned)
-ggplot(simple_linear_regression_pruned_aug, aes(x = .fitted, y = .resid)) + 
-  geom_point() + 
-  geom_hline(yintercept = 0, color = "darkred") + 
-  labs(x = "Fitted alcohol value", y = "Residual") + 
-  theme_bw()
+ggplot(simple_linear_regression_pruned_aug, aes(x = .fitted, y = .resid)) +
+  geom_point(color = "darkblue", size = 2) +
+  geom_hline(yintercept = 0, color = "darkred", linetype = "dashed", size = 1) +
+  labs(x = "Fitted Alcohol Value (ABV)", y = "Residuals", title = "Linearity and Homoscedasticity Assumptions are Satisfied") +
+  theme_minimal() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.border = element_rect(color = "black", fill = NA, size = 1),
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 12),
+    plot.title = element_text(size = 13, face = "bold", hjust = 0.5)
+  )
+
 
 ggplot(simple_linear_regression_pruned_aug, aes(sample = .resid)) +
-  stat_qq() + 
-  stat_qq_line() + 
-  theme_bw() + 
-  labs(x = "Theoretical quantiles", 
-       y = "Sample quantiles")
+  stat_qq(color = "darkblue", size = 1) +
+  stat_qq_line(color = "darkred", linetype = "dashed", size = 1) +
+  theme_minimal() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.border = element_rect(color = "black", fill = NA, size = 1),
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 12),
+    plot.title = element_text(size = 16, face = "bold", hjust = 0.5)
+  ) +
+  labs(x = "Theoretical Quantiles",
+       y = "Sample Quantiles",
+       title = "Normality Assumption is Satisifed")
 
-ggplot(simple_linear_regression_pruned_aug, aes(x = .resid)) + 
-  geom_histogram(aes(y = ..density..), 
-                     fill = "deepskyblue", color = "darkblue") + 
-  stat_function(fun = dnorm, 
+ggplot(simple_linear_regression_pruned_aug, aes(x = .resid)) +
+  geom_histogram(aes(y = ..density..),
+                 fill = "deepskyblue", color = "darkblue", bins = 30) +
+  stat_function(fun = dnorm,
                 args = list(mean = mean(simple_linear_regression_pruned_aug$.resid),
                             sd = sd(simple_linear_regression_pruned_aug$.resid)),
-                color = "darkred", lwd = 2) +
-  labs(x = "Residual", y = "Density") + 
-  theme_bw()
+                color = "darkred", size = 1) +
+  labs(x = "Residual", y = "Density", title = "Histogram of Residuals") +
+  theme_minimal() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.border = element_rect(color = "black", fill = NA, size = 1),
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 12),
+    plot.title = element_text(size = 16, face = "bold", hjust = 0.5)
+  )
+
 
 # Ok, now what if we add interaction terms for color of wine?
 linear_regression_interaction <- lm(alcohol ~ fixed.acidity + volatile.acidity + citric.acid + residual.sugar + chlorides + free.sulfur.dioxide + total.sulfur.dioxide + density + pH + sulphates + quality + color + color*fixed.acidity + color*volatile.acidity + color*citric.acid + color*residual.sugar + color*chlorides + color*free.sulfur.dioxide + color*total.sulfur.dioxide + color*density + color*pH + color*sulphates + color*quality, data=df)
@@ -152,28 +179,54 @@ summary(linear_regression_interaction)
 
 # Residual Plot + Q-Q + Histogram Again
 linear_regression_interaction_aug <- augment(linear_regression_interaction)
-ggplot(linear_regression_interaction_aug, aes(x = .fitted, y = .resid)) + 
-  geom_point() + 
-  geom_hline(yintercept = 0, color = "darkred") + 
-  labs(x = "Fitted alcohol value", y = "Residual") + 
-  theme_bw()
+
+ggplot(linear_regression_interaction_aug, aes(x = .fitted, y = .resid)) +
+  geom_point(color = "darkblue", size = 2) +
+  geom_hline(yintercept = 0, color = "darkred", linetype = "dashed", size = 1) +
+  labs(x = "Fitted Alcohol Value (ABV)", y = "Residuals", title = "Linearity and Homoscedasticity Assumptions are Satisfied") +
+  theme_minimal() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.border = element_rect(color = "black", fill = NA, size = 1),
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 12),
+    plot.title = element_text(size = 13, face = "bold", hjust = 0.5)
+  )
 
 ggplot(linear_regression_interaction_aug, aes(sample = .resid)) +
-  stat_qq() + 
-  stat_qq_line() + 
-  theme_bw() + 
-  labs(x = "Theoretical quantiles", 
-       y = "Sample quantiles")
+  stat_qq(color = "darkblue", size = 1) +
+  stat_qq_line(color = "darkred", linetype = "dashed", size = 1) +
+  theme_minimal() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.border = element_rect(color = "black", fill = NA, size = 1),
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 12),
+    plot.title = element_text(size = 14, face = "bold", hjust = 0.5)
+  ) +
+  labs(x = "Theoretical Quantiles",
+       y = "Sample Quantiles",
+       title = "Normality Assumption is Satisifed")
 
-ggplot(linear_regression_interaction_aug, aes(x = .resid)) + 
-  geom_histogram(aes(y = ..density..), 
-                     fill = "deepskyblue", color = "darkblue") + 
-  stat_function(fun = dnorm, 
+ggplot(linear_regression_interaction_aug, aes(x = .resid)) +
+  geom_histogram(aes(y = ..density..),
+                 fill = "deepskyblue", color = "darkblue", bins = 30) +
+  stat_function(fun = dnorm,
                 args = list(mean = mean(linear_regression_interaction_aug$.resid),
                             sd = sd(linear_regression_interaction_aug$.resid)),
-                color = "darkred", lwd = 2) +
-  labs(x = "Residual", y = "Density") + 
-  theme_bw()
+                color = "darkred", size = 1) +
+  labs(x = "Residual", y = "Density", title = "Histogram of Residuals") +
+  theme_minimal() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.border = element_rect(color = "black", fill = NA, size = 1),
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 12),
+    plot.title = element_text(size = 14, face = "bold", hjust = 0.5)
+  )
 ```
 
 ## Classification w/ Logistic
@@ -231,13 +284,13 @@ X <- df[, (names(df) %in% include_cols)]
 y <- df$high_quality
 k <- 10
 ctrl <- trainControl(method = "cv", number = k, verboseIter = TRUE)
-#rf_model <- train(x = X, y = y, method = "rf", trControl = ctrl)
+rf_model <- train(x = X, y = y, method = "rf", trControl = ctrl)
 
-#print(rf_model)
-#df$rf_predictions <- predict(rf_model, X)
-#df$rf_classification <- ifelse(df$rf_predictions > 0.5, "High Quality", "Low Quality")
+print(rf_model)
+df$rf_predictions <- predict(rf_model, X)
+df$rf_classification <- ifelse(df$rf_predictions > 0.5, "High Quality", "Low Quality")
 
-#table(df$rf_classification, df$high_quality)
+table(df$rf_classification, df$high_quality)
 
 ```
 Random Forest Model:
