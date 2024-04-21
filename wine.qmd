@@ -12,6 +12,7 @@ library(ggplot2)
 library(pROC)
 library(randomForest)
 library(caret)
+library(dplyr)
 
 red <- read.csv("winequality-red.csv", sep=";")
 red$color <- "red"
@@ -292,6 +293,32 @@ df$rf_classification <- ifelse(df$rf_predictions > 0.5, "High Quality", "Low Qua
 
 table(df$rf_classification, df$high_quality)
 
+red <- read.csv("winequality-red.csv", sep=";")
+red$color <- "red"
+white <- read.csv("winequality-white.csv", sep=";")
+white$color <- "white"
+
+df <- rbind(red, white)
+df <- na.omit(df)
+
+X <- df[, (names(df) %in% include_cols)]  
+y <- df$quality
+k <- 10
+ctrl <- trainControl(method = "cv", number = k, verboseIter = TRUE)
+rf_model_general <- train(x = X, y = y, method = "rf", trControl = ctrl)
+
+print(rf_model_general)
+df$rf_predictions_general <- predict(rf_model_general, X)
+df$rf_classification_general <- round(df$rf_predictions_general)
+
+accuracy_by_outcome <- df %>%
+  group_by(quality) %>%
+  summarise(accuracy = mean(quality == rf_classification_general))
+
+overall_accuracy <- mean(df$quality == df$rf_classification_general)
+
+print(accuracy_by_outcome)
+cat("Overall Prediction Rate:", overall_accuracy, "\n")
 ```
 Random Forest Model:
 - Sensitivity: 1262/(1262+15) = 0.98825371965
