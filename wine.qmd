@@ -13,7 +13,10 @@ library(pROC)
 library(randomForest)
 library(caret)
 library(dplyr)
+<<<<<<< HEAD
 library(Stat2Data)
+=======
+>>>>>>> 02b1d8cd47bd19a2661aacb9a098f3219a89c4a8
 
 red <- read.csv("winequality-red.csv", sep=";")
 red$color <- "red"
