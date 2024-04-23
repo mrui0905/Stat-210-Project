@@ -13,10 +13,7 @@ library(pROC)
 library(randomForest)
 library(caret)
 library(dplyr)
-<<<<<<< HEAD
 library(Stat2Data)
-=======
->>>>>>> 02b1d8cd47bd19a2661aacb9a098f3219a89c4a8
 
 red <- read.csv("winequality-red.csv", sep=";")
 red$color <- "red"
@@ -96,7 +93,7 @@ simple_linear_regression_aug <- augment(simple_linear_regression)
 ggplot(simple_linear_regression_aug, aes(x = .fitted, y = .resid)) +
   geom_point(color = "darkblue", size = 2) +
   geom_hline(yintercept = 0, color = "darkred", linetype = "dashed", size = 1) +
-  labs(x = "Fitted Alcohol Value (% Vol)", y = "Residuals", title = "Linearity and Homoscedasticity Assumptions are Satisfied") +
+  labs(x = "Fitted Alcohol Value (% Vol)", y = "Residuals", title = "One Clear Outlier in Data") +
   theme_minimal() +
   theme(
     panel.grid.major = element_blank(),
@@ -247,11 +244,15 @@ ggplot(linear_regression_interaction_aug, aes(x = .resid)) +
 
 # Continuing, let's try to predict whether a wine is high quality (>= 7, arbitrary cutoff).
 df$high_quality <- ifelse(df$quality %in% c("7", "8", "9"), 1, 0)
+df$log_chlorides <- log(df$chlorides)
+df$log_freesulfur <- log(df$free.sulfur.dioxide)
 
-logistic_model <- glm(high_quality ~ fixed.acidity + volatile.acidity + citric.acid + residual.sugar + chlorides + free.sulfur.dioxide + total.sulfur.dioxide + density + pH + sulphates + alcohol + color, data=df, family="binomial")
+logistic_model <- glm(high_quality ~ fixed.acidity + volatile.acidity + citric.acid + residual.sugar + log_chlorides + log_freesulfur + total.sulfur.dioxide + density + pH + sulphates + alcohol + color, data=df, family="binomial")
 summary(logistic_model)
 
-predictors_logistic <- c('fixed.acidity', 'volatile.acidity', 'citric.acid', 'residual.sugar', 'chlorides', 'free.sulfur.dioxide', 'total.sulfur.dioxide', 'density', 'pH', 'sulphates', 'alcohol')
+predictors_logistic <- c('fixed.acidity', 'volatile.acidity', 'citric.acid', 'residual.sugar', 'log_chlorides', 'log_freesulfur', 'total.sulfur.dioxide', 'density', 'pH', 'sulphates', 'alcohol')
+
+names <- c('Fixed Acidity', 'Volatile Acidity', 'Citric Acid', 'Residual Sugar', 'ln(Chlorides)', 'ln(Free Sulfur)', 'Total Sulfur Dioxide', 'Density', 'pH', 'Sulphates', 'Alcohol')
 
 for (i in seq_along(predictors_logistic)) {
   predictor <- predictors_logistic[i]
@@ -259,12 +260,15 @@ for (i in seq_along(predictors_logistic)) {
   
   emplogitplot1(formula,
                 data = df,
-                ngroups = 10)
+                ngroups = 10,
+                xlab = names[i],
+                ylab = "Log(Odds)",
+                main = paste("Predictor:", names[i]))
 }
 
 # Honestly pretty good, let's now try again with interaction terms
 
-logistic_model_interaction <- glm(high_quality ~ fixed.acidity + volatile.acidity + citric.acid + residual.sugar + chlorides + free.sulfur.dioxide + total.sulfur.dioxide + density + pH + sulphates + alcohol + color + color*fixed.acidity + color*volatile.acidity + color*citric.acid + color*residual.sugar + color*chlorides + color*free.sulfur.dioxide + color*total.sulfur.dioxide + color*density + color*pH + color*sulphates + color*alcohol, data=df, family="binomial")
+logistic_model_interaction <- glm(high_quality ~ fixed.acidity + volatile.acidity + citric.acid + residual.sugar + log_chlorides + log_freesulfur + total.sulfur.dioxide + density + pH + sulphates + alcohol + color + color*fixed.acidity + color*volatile.acidity + color*citric.acid + color*residual.sugar + color*log_chlorides + color*log_freesulfur + color*total.sulfur.dioxide + color*density + color*pH + color*sulphates + color*alcohol, data=df, family="binomial")
 summary(logistic_model_interaction)
 
 # Surprisingly, some of the predictor which were significant for the model w/o interaction terms are no longer significant. Let's see which model is a better classifier then.
@@ -273,29 +277,28 @@ prob_logistic <- predict(logistic_model, type = "response")
 roc_logistic <- roc(df$high_quality, prob_logistic)
 optimal_logistic <- coords(roc_logistic, "best", ret = "threshold")[[1]]
 print(paste("Optimal threshold:", optimal_logistic))
-optimal_threshold <- 0.5
-df$predict_logistic <- ifelse(prob_logistic >= optimal_threshold, 'High Quality', 'Low Quality')
+df$predict_logistic <- ifelse(prob_logistic >= optimal_logistic, 'High Quality', 'Low Quality')
 table(df$predict_logistic, df$high_quality)
 
 prob_logistic_interaction <- predict(logistic_model_interaction, type = "response")
 roc_logistic_interaction <- roc(df$high_quality, prob_logistic_interaction)
 optimal_logistic_interaction <- coords(roc_logistic_interaction, "best", ret = "threshold")[[1]]
 print(paste("Optimal threshold:", optimal_logistic_interaction))
-df$predict_logistic_interaction <- ifelse(prob_logistic_interaction >= optimal_threshold, 'High Quality', 'Low Quality')
+df$predict_logistic_interaction <- ifelse(prob_logistic_interaction >= optimal_logistic_interaction, 'High Quality', 'Low Quality')
 table(df$predict_logistic_interaction, df$high_quality)
 
 ```
 Logistic Model:
-- Sensitivity: 1183/(1183+94) = 0.9263899765
-- Specificity: 2050/(2050+3169) = 0.3927955547
-- Positive Predictive Value: 1183/(1183+3169) = 0.27182904411
-- Negative Predictive Value: 2050/(2050+94) = 0.95615671641
+- Sensitivity: 894/(894+383) = 0.70007830853
+- Specificity: 4135/(4135+1084) = 0.79229737497
+- Positive Predictive Value: 894/(894+1084) = 0.45197168857
+- Negative Predictive Value: 4135/(4135+383) = 0.91522797698
 
 Logistic Interaction Model:
-- Sensitivity: 1203/(1203+74) = 0.94205168363
-- Specificity: 2091/(2091+3128) = 0.40065146579
-- Positive Predictive Value: 1203/(1203+3128) = 0.27776495035
-- Negative Predictive Value: 2091/(2091+74) = 0.96581986143
+- Sensitivity: 944/(944+333) = 0.73923257635
+- Specificity: 4008/(4008+1211) = 0.76796321134
+- Positive Predictive Value: 944/(944+1211) = 0.43805104408
+- Negative Predictive Value: 4008/(4008+333) = 0.92328956461
 
 The interaction model is better in every metric!
 
