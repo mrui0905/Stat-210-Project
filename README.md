@@ -1,5 +1,6 @@
 # Stat-210-Project
 
-data: https://www.kaggle.com/datasets/nishaanamin/march-madness-data
+Stat 210 Final Project: Matthew Rui & Rohit Suresh
 
-wine: https://archive.ics.uci.edu/dataset/186/wine+quality 
+Uncorking the Relationship Between Physicochemical Properties and Perceived Wine Quality
+- data: https://archive.ics.uci.edu/dataset/186/wine+quality
