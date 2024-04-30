@@ -23,22 +23,11 @@ white$color <- "white"
 df <- rbind(red, white)
 df <- na.omit(df)
 df$quality <- as.factor(df$quality)
-```
 
-## Introduction and data
-
-Wine quality evaluations play an important role in numerous parts of the wine supply chain. They are important for quality assurance, market differentiation, and consumer guidance. Generally, a wine quality evaluation analyzes appearance, aroma, flavor, structure, and overall balance to generate a score from 1 to 10. Physicochemical properties of wine samples is readily available to most manufacturers, and quantifying the relationship between physiochemical properties and wine quality evaluations could be of great interest to manufacturers. It may help them with quality control, product development, and cost efficiency. [ADD CITATION]
-
-The data for this work is from the UC Irvine Machine Learning Repository from the paper Cortez et al., 2009. [ADD CITATION] Rows with missing data were removed and quality was treated as a factor. 
-
-Datasets for white wine and red wine were provided separately from the source. In this work, we combined the data into one dataset, creating a new variable for the color of wine (color) in the process. [DEFINE VARIABLES]
-
-
-```{r intro-0, message = F, warning = F}
 summary(df)
 ```
 
-Red wines, on average, have lower quality scores than white wines on average. While this will result in a more complex model, it will more accurately picture the data in one model, which is why we chose to do this.
+Red wines, on average, have lower quality scores than white wines on average.
 
 ```{r intro-1, message = F, warning = F}
 # Create a bar plot of quality
@@ -51,10 +40,6 @@ print(barplot_quality)
 ```
 
 To perform logistic regression, a quality threshold for high quality vs low quality was established after analyzing the distribution of quality scores. 
-
-
-
-Samples with quality scores of 7 or greater were classified as high quality. [ADD REASONING]
 
 ``` {r intro-2, message = F, warning = F}
 # Continuing, let's try to predict whether a wine is high quality (>= 7).
@@ -77,7 +62,7 @@ boxplot_sulphates <- ggplot(df, aes(x = high_quality, y = alcohol, fill = high_q
 print(boxplot_sulphates)
 ```
 
-```{r}
+```{r intro-4, message = F, warning = F}
 ggplot(df, aes(x = quality, fill = color)) +
   geom_bar(position = "dodge", alpha = 0.7, color = "black") +
   labs(title = "Red Wines Have Lower Quality Scores Than White Wines",
@@ -87,7 +72,7 @@ ggplot(df, aes(x = quality, fill = color)) +
   theme_minimal()
 ```
 
-```{r}
+```{r intro-5, message = F, warning = F}
 ggplot(df, aes(x = quality, y = alcohol)) +
   geom_boxplot(fill = "lightblue", color = "black") +
   labs(x = "Quality", y = "Alcohol Consumption") +
@@ -95,7 +80,7 @@ ggplot(df, aes(x = quality, y = alcohol)) +
   theme_classic()
 ```
 
-```{r}
+```{r intro-6, message = F, warning = F}
 # Create side-by-side box plots conditioning on wine color
 ggplot(df, aes(x = quality, y = pH, fill = color)) +
   geom_boxplot() +
@@ -107,7 +92,6 @@ ggplot(df, aes(x = quality, y = pH, fill = color)) +
   theme(legend.position = "bottom") # Move legend to the bottom
 
 ```
-
 
 ## Linear Regression
 ```{r Linear Regression, message = F, warning = F}
@@ -281,6 +265,7 @@ df$log_freesulfur <- log(df$free.sulfur.dioxide)
 logistic_model <- glm(high_quality ~ fixed.acidity + volatile.acidity + citric.acid + residual.sugar + log_chlorides + log_freesulfur + total.sulfur.dioxide + density + pH + sulphates + alcohol + color, data=df, family="binomial")
 summary(logistic_model)
 
+# Empirical Logit Plots to check assumptions
 predictors_logistic <- c('fixed.acidity', 'volatile.acidity', 'citric.acid', 'residual.sugar', 'log_chlorides', 'log_freesulfur', 'total.sulfur.dioxide', 'density', 'pH', 'sulphates', 'alcohol')
 
 names <- c('Fixed Acidity', 'Volatile Acidity', 'Citric Acid', 'Residual Sugar', 'ln(Chlorides)', 'ln(Free Sulfur)', 'Total Sulfur Dioxide', 'Density', 'pH', 'Sulphates', 'Alcohol')
@@ -334,7 +319,6 @@ Logistic Interaction Model:
 The interaction model is better in every metric!
 
 ## Random Forest
-
 ```{r Random Forest, message=FALSE, warning=FALSE}
 
 include_cols <- c('fixed.acidity' , 'volatile.acidity' , 'citric.acid' , 'residual.sugar' , 'chlorides' , 'free.sulfur.dioxide' , 'total.sulfur.dioxide' , 'density' , 'pH' , 'sulphates' , 'alcohol' , 'color')
