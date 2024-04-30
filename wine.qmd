@@ -44,9 +44,8 @@ Red wines, on average, have lower quality scores than white wines on average. Wh
 # Create a bar plot of quality
 barplot_quality <- ggplot(df, aes(x = factor(quality))) +
   geom_bar(fill = "skyblue", color = "black", alpha = 0.7) +
-  labs(title = "Bar Plot of Wine Quality", x = "Quality", y = "Frequency") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
+  labs(title = "Majorty of Wine Quality Observations Are Between 5 and 7", x = "Quality", y = "Frequency") +
+  theme_minimal()
 # Plot the bar plot
 print(barplot_quality)
 ```
@@ -77,6 +76,38 @@ boxplot_sulphates <- ggplot(df, aes(x = high_quality, y = alcohol, fill = high_q
 # Plot the box plot
 print(boxplot_sulphates)
 ```
+
+```{r}
+ggplot(df, aes(x = quality, fill = color)) +
+  geom_bar(position = "dodge", alpha = 0.7, color = "black") +
+  labs(title = "Red Wines Have Lower Quality Scores Than White Wines",
+       x = "Quality",
+       y = "Frequency") +
+  scale_fill_manual(values = c("pink", "lightblue"), name = "Wine Color", labels = c("Red", "White")) +
+  theme_minimal()
+```
+
+```{r}
+ggplot(df, aes(x = quality, y = alcohol)) +
+  geom_boxplot(fill = "lightblue", color = "black") +
+  labs(x = "Quality", y = "Alcohol Consumption") +
+  ggtitle("Higher Alcohol is Associated with Higher Quality") +
+  theme_classic()
+```
+
+```{r}
+# Create side-by-side box plots conditioning on wine color
+ggplot(df, aes(x = quality, y = pH, fill = color)) +
+  geom_boxplot() +
+  labs(x = "Quality", y = "pH", title = "Effects of pH on Quality Depend on Color") +
+  scale_fill_discrete( ) +
+  scale_fill_manual(values = c("pink", "lightblue"), name = "Wine Color", labels = c("Red", "White")) +
+  
+  theme_classic() +
+  theme(legend.position = "bottom") # Move legend to the bottom
+
+```
+
 
 ## Linear Regression
 ```{r Linear Regression, message = F, warning = F}
