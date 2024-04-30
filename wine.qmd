@@ -15,9 +15,9 @@ library(caret)
 library(dplyr)
 library(Stat2Data)
 
-red <- read.csv("winequality-red.csv", sep=";")
+red <- read.csv("data/winequality-red.csv", sep=";")
 red$color <- "red"
-white <- read.csv("winequality-white.csv", sep=";")
+white <- read.csv("data/winequality-white.csv", sep=";")
 white$color <- "white"
 
 df <- rbind(red, white)
