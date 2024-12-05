@@ -1,6 +1,7 @@
 # Stat-210-Project
 
-Stat 210 Final Project: Matthew Rui & Rohit Suresh
+Final Project for STA 210 Linear Regression, Duke University - Spring 2024
 
-Uncorking the Relationship Between Physicochemical Properties and Perceived Wine Quality
-- data: https://archive.ics.uci.edu/dataset/186/wine+quality
+Co-Author: Rohit Suresh
+
+Dataset: https://archive.ics.uci.edu/dataset/186/wine+quality
